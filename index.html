@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#14857a">
+  <meta name="description" content="小五中文修辭互動教材：跟偵探小探一起找出借代詞、所指對象和兩者的關係，分辨借代、比喻和普通描述，再寫出自己的借代句。">
+  <title>借代小偵探｜小五中文修辭</title>
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">跳至主要內容</a>
+  <header class="top">
+    <a class="brand" href="#home"><img src="./icon.svg" alt="" width="44" height="44"><span>借代小偵探<small>小五中文 · 修辭</small></span></a>
+    <div class="top-tools">
+      <span class="clues" title="首次答對題數"><span aria-hidden="true">⭐</span><span class="sr">首次答對</span><b id="clue-count">0</b></span>
+      <button id="sound-btn" class="icon-btn" type="button" aria-label="關閉聲效">🔊</button>
+      <details class="tools">
+        <summary aria-label="設定">⚙️<span class="sum-text"> 設定</span></summary>
+        <div>
+          <label><input type="checkbox" data-pref="teacher">老師模式</label>
+          <label><input type="checkbox" data-pref="large">大字投影</label>
+          <label><input type="checkbox" data-pref="calm">減少動畫</label>
+          <a href="#guide">老師使用說明</a>
+          <a href="#worksheet">列印工作紙</a>
+          <button type="button" class="link-btn" id="open-clear">清除本機進度</button>
+        </div>
+      </details>
+    </div>
+  </header>
+  <nav id="unit-nav" aria-label="案件"></nav>
+  <div id="storage-note" role="status"></div>
+  <main id="main" tabindex="-1"></main>
+  <footer><span>所有句子及短文均為原創教學例子。</span><span>不用登入 · 進度只保存在這部裝置的瀏覽器</span></footer>
+  <dialog id="clear-dialog"><h2>清除學習進度？</h2><p>會移除所有答題紀錄、徽章和偵探筆記本，無法復原。</p><form method="dialog"><button class="btn" value="cancel">保留進度</button><button value="clear" class="btn danger">確認清除</button></form></dialog>
+</body>
+</html>
