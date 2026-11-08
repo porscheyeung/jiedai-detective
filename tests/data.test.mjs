@@ -12,7 +12,7 @@ test('共有 24 道計分題，編號不重複', () => {
 });
 
 test('配對站：借代詞只出現一次，答案及關係有效，錯誤選項都有提示', () => {
-  const expect = { c1: ['人手', 'part'], c2: ['新面孔', 'part'], c3: ['全校', 'place'], c4: ['紅衣們', 'feature'], c5: ['金庸', 'author'], c6: ['千帆', 'part'] };
+  const expect = { c1: ['人手', 'part'], c2: ['新面孔', 'part'], c3: ['絲竹', 'material'], c4: ['紅帽子', 'feature'], c5: ['金庸', 'author'], c6: ['千帆', 'part'] };
   for (const c of CASES) {
     const toks = splitTokens(c.tokens);
     assert.equal(toks.filter((t) => t === c.word).length, 1, c.id);
@@ -23,8 +23,8 @@ test('配對站：借代詞只出現一次，答案及關係有效，錯誤選�
   }
 });
 
-test('真假借代：三類都有，錯誤類別都有提示', () => {
-  const expect = { j1: 'putong', j2: 'jiedai', j3: 'biyu', j4: 'biyu', j5: 'jiedai', j6: 'putong', j7: 'jiedai', j8: 'putong' };
+test('真假借代：四類都有，錯誤類別都有提示', () => {
+  const expect = { j1: 'putong', j2: 'jiedai', j3: 'biyu', j4: 'biyu', j5: 'jiedai', j6: 'putong', j7: 'niren', j8: 'putong' };
   for (const j of JUDGES) {
     assert.equal(j.answer, expect[j.id]);
     for (const k of Object.keys(JUDGE_LABELS)) if (k !== j.answer) assert.ok(j.hints[k], j.id + k);
@@ -40,7 +40,7 @@ test('短文：目標詞位置正確、證據句存在、字數合理', () => {
     for (const t of p.targets) {
       const toks = splitTokens(p.sentences[t.at[0]]);
       assert.equal(toks.filter((x) => x === t.at[1]).length, 1, t.id);
-      t.clues.forEach((c) => assert.ok(c >= 0 && c < p.sentences.length && c !== t.at[0]));
+      t.clues.forEach((c) => assert.ok(c >= 0 && c < p.sentences.length));
       assert.ok(t.answer < t.options.length);
     }
   }

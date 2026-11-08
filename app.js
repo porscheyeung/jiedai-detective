@@ -2,14 +2,14 @@ import { RELATIONS, UNITS, CASES, JUDGES, JUDGE_LABELS, PASSAGES, TOKEN_HINTS, R
 import { sound, confetti, stamp, mascot, setFx } from './fx.js';
 
 const KEY = 'jiedai-detective-v1';
-const PASSAGE_REL = { p1a: 'feature', p1b: 'place', p2a: 'part', p3a: 'author' };
+const PASSAGE_REL = { p1a: 'feature', p1b: 'part', p2a: 'part', p3a: 'author' };
 const PUNCT = /^[，。！？：、；「」『』]+$/;
-const JUDGE_ICON = { jiedai: '🔄', biyu: '🪞', putong: '📝' };
+const JUDGE_ICON = { jiedai: '🔄', biyu: '🪞', putong: '📝', niren: '🌼' };
 const main = document.getElementById('main');
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 function blank() {
-  return { v: 1, answers: {}, units: {}, last: 'u1', writing: { rewrite: '', rewriteQ: null, entries: [] }, prefs: { sound: true, calm: false, teacher: false, large: false } };
+  return { v: 1, contentRevision: 2, answers: {}, units: {}, last: 'u1', writing: { rewrite: '', rewriteQ: null, entries: [] }, prefs: { sound: true, calm: false, teacher: false, large: false } };
 }
 let storageOk = true;
 function load() {
@@ -18,7 +18,14 @@ function load() {
     if (!raw) return blank();
     const d = JSON.parse(raw);
     const b = blank();
-    return { ...b, ...d, writing: { ...b.writing, ...(d.writing || {}) }, prefs: { ...b.prefs, ...(d.prefs || {}) } };
+    if (d.contentRevision !== 2) {
+      d.answers = { ...(d.answers || {}) };
+      for (const id of ['c3a', 'c3b', 'j7', 'p1b']) delete d.answers[id];
+      d.units = { ...(d.units || {}) };
+      for (const id of ['u2', 'u3', 'u4', 'u5', 'u6']) delete d.units[id];
+      if (d.writing) d.writing.rewriteQ = null;
+    }
+    return { ...b, ...d, contentRevision: 2, writing: { ...b.writing, ...(d.writing || {}) }, prefs: { ...b.prefs, ...(d.prefs || {}) } };
   } catch { storageOk = false; return blank(); }
 }
 let S = load();
@@ -186,7 +193,7 @@ function u1() {
   if (s.step >= 2) {
     body += `<div class="reveal-card">
       <div class="link-line"><span class="chip">白袍</span><span class="arrow" aria-hidden="true">➜</span><span class="chip t">穿白袍的醫護人員</span></div>
-      <p>作者沒有直接寫「醫生」或「護士」，而是借他們身上的<b>衣着</b>來代替他們。這種寫法就叫<b>借代</b>。</p>
+      <p>作者沒有直接寫「醫生」或「護士」，而是借他們身上的<b>衣着</b>來代替他們。這種寫法就叫<b>借代</b>。判斷時要找出它代替誰，不能只看它做了甚麼動作。</p>
       <p class="note">⚠️ 小心：要看情境！「衣架上掛着白袍」的白袍，就只是衣服，不是醫生。</p>
       <div class="def-mini">📖 <b>借代</b>：不直接說出名稱，而用和它<mark>有密切關係</mark>的名稱來代替。</div>
       <div class="row center">${unitDone('u1') ? '<a class="btn primary big" href="#u2">下一案：拆開借代 →</a>' : '<button class="btn primary big" data-act="u1done">🎉 破案！</button>'}</div>
@@ -217,15 +224,15 @@ function bindLens() {
 function u2() {
   const s = ui.u2;
   const steps = [
-    { t: '找詞語', d: '句中奇怪的詞是「藍衣們」。衣服不會高舉獎盃！' },
-    { t: '找對象', d: '前文說隊員都穿藍色隊衣，所以「藍衣們」指<b>我們學校的參賽隊員</b>。' },
-    { t: '說關係', d: '作者用隊員的<b>衣着</b>，代替穿這種衣服的隊員。' },
+    { t: '找詞語', d: '句中奇怪的詞是「藍帽子」。再看前文，這裏指哪一群人？' },
+    { t: '找對象', d: '前文說隊員都戴藍色帽子，所以「藍帽子」指<b>我們學校的參賽隊員</b>。' },
+    { t: '說關係', d: '作者用隊員的<b>衣着</b>，代替戴這種帽子的隊員。' },
   ];
   let body = `<div class="story">
-    <p class="context">前文：我們學校的參賽隊員都穿着藍色隊衣。</p>
-    <p class="sentence">比賽結束後，<span class="hl ${s.step >= 1 ? 'on' : ''}">藍衣們</span>高舉獎盃，歡呼起來。</p>
+    <p class="context">前文：我們學校的參賽隊員都戴着藍色帽子。</p>
+    <p class="sentence">比賽結束後，<span class="hl ${s.step >= 1 ? 'on' : ''}">藍帽子</span>高舉獎盃，歡呼起來。</p>
     <div class="link-line big ${s.step >= 2 ? 'on' : ''}" aria-hidden="${s.step < 2}">
-      <span class="chip">藍衣們</span><span class="arrow">➜</span><span class="chip t">🧑‍🤝‍🧑 參賽隊員</span>
+      <span class="chip">藍帽子</span><span class="arrow">➜</span><span class="chip t">🧑‍🤝‍🧑 參賽隊員</span>
     </div>
   </div>
   <ol class="steps">${steps.map((st, i) => `<li class="${s.step > i ? 'open' : ''}">
@@ -233,12 +240,12 @@ function u2() {
     <p ${s.step > i ? '' : 'hidden'}>${st.d}</p></li>`).join('')}</ol>`;
   if (s.step >= 3) {
     body += `<div class="compare">
-      <div class="cmp-card"><small>普通寫法</small><p>穿着藍色隊衣的參賽隊員高舉獎盃。</p></div>
+      <div class="cmp-card"><small>普通寫法</small><p>戴着藍色帽子的參賽隊員高舉獎盃。</p></div>
       <div class="cmp-vs" aria-hidden="true">VS</div>
-      <div class="cmp-card star"><small>借代寫法</small><p>藍衣們高舉獎盃。</p></div>
+      <div class="cmp-card star"><small>借代寫法</small><p>藍帽子高舉獎盃。</p></div>
     </div>
-    <p class="center-text">借代可以<b>突出特徵</b>，句子也更<b>簡潔生動</b>。但記住：讀者一定要明白所指對象！</p>
-    <h2 class="sec">✨ 翻開四張關係卡</h2>
+    <p class="center-text">兩種寫法都可以。借代能<b>突出帽子的顏色特徵</b>，直接寫隊員也很清楚。要按表達需要選擇，不是用了借代就一定較好。</p>
+    <h2 class="sec">✨ 翻開四張關係卡</h2><p class="muted">這是本課選用的幾種關係，不是借代的全部類型。不用背分類名稱，先說清楚為甚麼可以代替。</p>
     <div class="flip-grid">${Object.entries(RELATIONS).map(([k, r], i) => `<button class="flip ${s.flipped.includes(i) ? 'on' : ''}" data-act="u2flip" data-i="${i}" aria-pressed="${s.flipped.includes(i)}">
       <span class="front"><span class="ficon">${r.icon}</span><b>${r.label}</b><small>點擊翻開</small></span>
       <span class="back"><b>${r.label}</b><span>${r.desc}</span><em>${r.example}</em></span></button>`).join('')}</div>
@@ -358,16 +365,16 @@ function u4() {
   const keys = Object.keys(JUDGE_LABELS);
   const dots = JUDGES.map((x, i) => `<button class="dot ${i === s.i ? 'cur' : ''} ${S.answers[x.id]?.done ? 'done' : ''}" data-act="u4go" data-i="${i}" aria-label="第 ${i + 1} 句">${S.answers[x.id]?.done ? '✓' : i + 1}</button>`).join('');
   let task;
-  if (s.step === 'judge') task = `<h2>這一句是……</h2>${optButtons(keys.map((k) => `${JUDGE_ICON[k]} ${JUDGE_LABELS[k]}`), 'u4j', { state: s.optState, cls: 'three' })}`;
+  if (s.step === 'judge') task = `<h2>這一句是……</h2>${optButtons(keys.map((k) => `${JUDGE_ICON[k]} ${JUDGE_LABELS[k]}`), 'u4j', { state: s.optState, cls: 'two' })}`;
   else if (s.step === 'reason') task = `<div class="found">✔ 這句是「${JUDGE_LABELS[j.answer]}」</div><h2>為甚麼？選出最好的理由</h2>${optButtons(j.reasons, 'u4r', { state: s.optState })}`;
   else task = `<div class="solved-card"><p class="formula"><span class="rel-tag">${JUDGE_ICON[j.answer]} ${JUDGE_LABELS[j.answer]}</span></p><p>${j.explain}</p></div>
     <div class="row center">${s.i < JUDGES.length - 1 ? '<button class="btn primary big" data-act="u4next">下一句 →</button>' : ''}
     ${JUDGES.every((x) => S.answers[x.id]?.done) && !unitDone('u4') ? '<button class="btn primary big" data-act="u4done">🎉 全部破案！</button>' : ''}
     ${unitDone('u4') && s.i === JUDGES.length - 1 ? '<a class="btn primary big" href="#u5">下一案：小偵探辦案 →</a>' : ''}</div>`;
   const body = `<div class="legend">
-      <span>🔄 <b>借代</b>：用有關係的名稱<b>代替</b></span><span>🪞 <b>比喻</b>：抓住<b>相似</b>之處作比較</span><span>📝 <b>普通描述</b>：照字面意思</span>
+      <span>🔄 <b>借代</b>：用有關係的名稱<b>代替</b></span><span>🪞 <b>比喻</b>：抓住<b>相似</b>之處作比較</span><span>🌼 <b>擬人</b>：把事物當作人來寫</span><span>📝 <b>普通描述</b>：照字面意思</span>
     </div>
-    <div class="dots" role="group" aria-label="選擇句子">${dots}</div>
+    <p class="note">🔍 小心陷阱：「白袍照顧病人」用衣着代替人；「花兒向我微笑」仍在寫花，是擬人。先找清楚所指，不能只看動作。</p><div class="dots" role="group" aria-label="選擇句子">${dots}</div>
     <article class="case-card judge">
       <div class="case-scene" aria-hidden="true">${j.emoji}</div>
       <p class="sentence">${j.sentence}</p>
@@ -384,7 +391,7 @@ function u4Handle(act, i) {
     else { sound('bad'); record(j.id, false); s.optState[i] = 'wrong'; s.wrong++; s.msg = feedback('bad', j.hints[k] + maybeReveal(s.wrong)); s.mood = 'think'; }
   } else if (act === 'u4r') {
     if (i === j.reason) { sound('good'); finish(j.id); s.step = 'done'; s.msg = ''; confetti(20); }
-    else { sound('bad'); record(j.id, false); s.optState[i] = 'wrong'; s.wrong++; s.msg = feedback('bad', '這個理由說不通。想想句子是「代替」、「比較相似」，還是照字面意思？' + maybeReveal(s.wrong)); s.mood = 'think'; }
+    else { sound('bad'); record(j.id, false); s.optState[i] = 'wrong'; s.wrong++; s.msg = feedback('bad', '這個理由說不通。想想句子是「代替」、「比較相似」，「把事物當人寫」，還是照字面意思？' + maybeReveal(s.wrong)); s.mood = 'think'; }
   }
 }
 function u4Reveal() { const s = ui.u4; reveal(JUDGES[s.i].id); sound('reveal'); s.step = 'done'; s.msg = ''; }
@@ -473,11 +480,11 @@ function u6() {
   const hasRewrite = W.rewrite.trim().length > 0;
   const sc = SCENES[s.scene];
   let body = `<article class="case-card write">
-    <h2>✏️ 任務一：改寫成借代句</h2>
+    <h2>✏️ 任務一：試寫，再比較</h2><p class="note">原句本來就清楚自然。試寫借代句後，跟同學說說：哪種寫法更適合這個情境？為甚麼？</p>
     <p class="context">${REWRITE.context}</p>
     <p class="sentence small">原句：${REWRITE.original}</p>
-    <label class="lbl" for="rw">把「穿着紅色球衣的隊員」改成借代：</label>
-    <textarea id="rw" rows="2" maxlength="60" placeholder="例如：＿＿＿衝進球場。">${esc(s.rwDraft ?? W.rewrite)}</textarea>
+    <label class="lbl" for="rw">試用義工的衣着特徵改寫：</label>
+    <textarea id="rw" rows="2" maxlength="60" placeholder="例如：幾頂＿＿＿正在派發物資。">${esc(s.rwDraft ?? W.rewrite)}</textarea>
     <div class="row"><button class="btn primary" data-act="u6check">交給小探看看</button></div>
     ${s.msg}`;
   if (hasRewrite && s.checked) {
@@ -508,8 +515,7 @@ function u6Handle(act, i) {
     const v = (document.getElementById('rw')?.value || '').trim();
     W.rewrite = v; save(); s.checked = !!v; s.qState = {};
     if (!v) s.msg = feedback('hint', '先寫一句再交給小探吧！');
-    else if (v.includes('紅衣') || v.includes('紅球衣')) { sound('good'); s.msg = feedback('good', '你用隊員的衣着代替了隊員，這就是借代！參考寫法：' + REWRITE.sample); }
-    else s.msg = feedback('hint', '試試用隊員身上「紅色球衣」這個特徵代替「穿着紅色球衣的隊員」。參考寫法：' + REWRITE.sample);
+    else { sound('good'); s.msg = feedback('saved', '已收下你的嘗試！這裏不自動判分。參考：' + REWRITE.sample + ' 請檢查你的詞是否真的代替義工，再比較原句和改寫句的效果；可請老師給意見。'); }
   } else if (act === 'u6q') {
     if (i === REWRITE.answer) { sound('good'); W.rewriteQ = i; save(); }
     else { sound('bad'); s.qState = { ...(s.qState || {}), [i]: 'wrong' }; }
@@ -556,14 +562,14 @@ function worksheet() {
     <div class="no-print row"><button class="btn primary" onclick="window.print()">🖨️ 列印工作紙及答案</button><a class="btn" href="#home">返回</a></div>
     <header class="sheet-head"><h1>借代小偵探 工作紙</h1><p>姓名：＿＿＿＿＿＿　班別：＿＿＿　學號：＿＿　日期：＿＿＿＿</p></header>
     <h2>一、找出借代詞、所指對象及關係</h2>
-    <p class="muted">關係：甲 衣着／特徵代人物　乙 部分代整體　丙 地方代那裏的人　丁 作者代作品</p>
+    <p class="muted">關係：甲 衣着／特徵代人物　乙 部分代整體　丙 材料代製成品　丁 作者代作品</p>
     <ol>${CASES.map((c) => `<li>${c.context ? `<small>${c.context}</small><br>` : ''}${splitTokens(c.tokens).join('')}<div class="blanks">借代詞：＿＿＿＿　代替：＿＿＿＿＿＿＿＿　關係：＿＿</div></li>`).join('')}</ol>
-    <h2>二、這是借代、比喻還是普通描述？請圈出答案並寫理由。</h2>
-    <ol>${JUDGES.map((j) => `<li>${j.sentence}<div class="blanks">（借代／比喻／普通描述）理由：＿＿＿＿＿＿＿＿＿＿＿＿＿＿</div></li>`).join('')}</ol>
+    <h2>二、這是借代、比喻、擬人還是普通描述？請圈出答案並寫理由。</h2>
+    <ol>${JUDGES.map((j) => `<li>${j.sentence}<div class="blanks">（借代／比喻／擬人／普通描述）理由：＿＿＿＿＿＿＿＿＿＿＿＿＿＿</div></li>`).join('')}</ol>
     <h2>三、閱讀短文，找出借代並寫出證據</h2>
     ${PASSAGES.map((p) => `<div class="sheet-passage"><b>${p.title}</b><p>${p.sentences.map((s, i) => `<sup>${i + 1}</sup>${splitTokens(s).join('')}`).join('')}</p><div class="blanks">${p.targets.map(() => '借代詞：＿＿＿＿　代替：＿＿＿＿＿＿＿＿　證據：第＿＿句').join('<br>')}</div></div>`).join('')}
     <h2>四、寫作</h2>
-    <p>1. ${REWRITE.context} 把「${REWRITE.original}」改寫成借代句：</p><div class="lines"></div>
+    <p>1. ${REWRITE.context} 把「${REWRITE.original}」試改寫成借代句，並說說原句和改寫句各有甚麼效果：</p><div class="lines"></div>
     <p>2. 選一個場景（運動會／社區活動／校園生活），寫一句借代句，並先寫前文交代：</p><div class="lines"></div><div class="lines"></div>
     <section class="answers"><h1>答案頁</h1>
       <h2>一</h2><ol>${CASES.map((c) => `<li>${c.word} → ${c.targets[c.target]}；${RELATIONS[c.relation].label}</li>`).join('')}</ol>
@@ -585,7 +591,7 @@ function guide() {
     <h2>學生自學時</h2>
     <ul><li>第一次答錯有針對性提示；答錯兩次可按「看解說」。</li><li>偵探報告分開顯示「首次答對」及「訂正後完成」。</li><li>自由造句不自動評分，由老師按四項準則判斷。</li></ul>
     <h2>私隱</h2><p>不用登入，不收集資料。進度及造句只存於這部裝置的瀏覽器，不會上傳；可在偵探報告頁清除。</p>
-    <h2>教學重點</h2><p>借代：不直接說出名稱，而用與它有密切關係的名稱代替。請引導學生按「用了甚麼詞 → 真正指誰 → 為甚麼可以代替」三步思考，並提醒同一個詞要按情境判斷；不宜用「有沒有『像』字」判斷比喻。</p>
+    <h2>教材定位與課程參考</h2><p>本網站是供小五選用的校本補充教材，並非教育局指定或審定教材；借代並非教育局列明的小五統一必教項目。教師可按學生程度安排，重點是理解、推論及清楚表達，毋須背熟分類。</p><p>參考：<a href="https://www.edb.gov.hk/attachment/tc/curriculum-development/kla/chi-edu/curriculum-documents/Pri_Chin_Lang_LO_2023.pdf" target="_blank" rel="noopener">《小學中國語文建議學習重點》（2023年修訂）</a>，印刷頁8（找出關鍵語句、推論）、10（合適修辭、推敲字詞）；<a href="https://www.edb.gov.hk/attachment/tc/curriculum-development/kla/chi-edu/curriculum-documents/Primary_Chi_Lang_Curr_Guide_2023.pdf" target="_blank" rel="noopener">《中國語文課程指引（小一至小六）》（2023）</a>。</p><h2>教學重點</h2><p>借代與擬人要比較所指，不可只看是否出現人的動作。「全校」「全班」可直接表示成員，本課不把這些用法設為單一答案的借代題。分類卡只作幫助解釋，不是完整分類表；原句和借代句各有用途。</p><p>內容修訂版保留舊筆記及未改題目的紀錄；替換的題目須重新作答，相關單元徽章須重新完成。</p><p>借代：不直接說出名稱，而用與它有密切關係的名稱代替。請引導學生按「用了甚麼詞 → 真正指誰 → 為甚麼可以代替」三步思考，並提醒同一個詞要按情境判斷；不宜用「有沒有『像』字」判斷比喻。</p>
   </section>`;
 }
 

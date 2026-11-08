@@ -88,12 +88,12 @@ for (const [pi, p] of PASSAGES.entries()) {
 await act(page, 'u5done');
 
 await go(page, 'u6');
-await page.fill('#rw', '紅衣們衝進球場。');
+await page.fill('#rw', '幾頂紅帽子正在派發物資。');
 await act(page, 'u6check');
-ok(await page.locator('.fb-good').count() === 1, '改寫句得到正面回饋');
+ok(await page.locator('.fb-saved').count() === 1, '改寫句收到中性回饋');
 await act(page, 'u6q', 1);
 await act(page, 'u6scene', 2);
-await page.fill('#mine', '聽到明天去旅行，全班都高興得跳起來。');
+await page.fill('#mine', '新學期，班上多了幾張新面孔。');
 for (let i = 0; i < 4; i++) await page.locator(`[data-check="${i}"]`).check();
 await act(page, 'u6save');
 ok(await page.locator('.notes li').count() === 1, '造句放進筆記本');
@@ -146,6 +146,34 @@ for (const [name, vp, mobile] of [['mobile', { width: 390, height: 844 }, true],
   for (let k = 0; k < 22; k++) await page.touchscreen.tap(b.x + 30 + k * 14, b.y + 100);
   await page.waitForTimeout(700);
   ok(await page.locator('.reveal-card').count() === 1, '手機觸控放大鏡可揭示');
+  await ctx.close();
+}
+
+{
+  const { page, ctx } = await fresh();
+  await go(page, 'home');
+  await page.evaluate(() => localStorage.setItem('jiedai-detective-v1', JSON.stringify({
+    answers: { c1a: { done: true, first: true }, c3a: { done: true, first: true }, j7: { done: true, first: true }, p1b: { done: true, first: true } },
+    units: { u1: true, u2: true, u3: true, u4: true, u5: true, u6: true },
+    writing: { rewrite: '舊改寫保留', rewriteQ: 1, entries: [{ text: '我的舊筆記', scene: 'school', checks: [0] }] },
+    prefs: { sound: false, teacher: true, calm: true }
+  })));
+  await page.reload(); await go(page, 'u6');
+  const migrated = await store(page);
+  ok(migrated.contentRevision === 2 && migrated.answers.c1a.done && !migrated.answers.c3a && !migrated.answers.j7 && !migrated.answers.p1b, '舊紀錄只重開替換題');
+  ok(migrated.units.u1 && !migrated.units.u4 && migrated.writing.entries[0].text === '我的舊筆記' && migrated.writing.rewrite === '舊改寫保留', '修訂保留筆記、原改寫及未改紀錄');
+  ok(migrated.prefs.teacher && migrated.writing.rewriteQ === null, '保留設定並重開新情境追問');
+  await page.fill('#rw', '紅帽子放在桌上。'); await act(page, 'u6check');
+  const message = await page.locator('.fb-saved').innerText();
+  ok(message.includes('不自動判分') && !message.includes('這就是借代'), '包含關鍵字的普通描述不會被自動判為借代');
+  await go(page, 'u4'); await act(page, 'u4go', 6); await act(page, 'u4j', 0);
+  ok((await page.locator('.fb-bad').innerText()).includes('仍指花'), '擬人誤選借代有針對性解說');
+  await act(page, 'u4j', 3); await page.mouse.move(0, 0); await page.waitForTimeout(300); await act(page, 'u4r', 0);
+  ok((await page.locator('.solved-card').innerText()).includes('是擬人'), '擬人題正確作答及解說');
+  await go(page, 'worksheet');
+  ok((await page.locator('.answers').innerText()).includes('擬人') && !(await page.locator('.answers').innerText()).includes('地方代'), '工作紙答案同步更新');
+  await go(page, 'guide');
+  ok(await page.locator('a[href*="Pri_Chin_Lang_LO_2023.pdf"]').count() === 1, '教師說明附官方課程來源');
   await ctx.close();
 }
 
